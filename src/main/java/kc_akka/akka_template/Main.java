@@ -15,7 +15,7 @@ public class Main {
         try {
             Main main = new Main();
             List<String> messages = new ArrayList<>();
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 10; i++) {
                 messages.add(String.valueOf(i));
             }
             main.run(messages);
@@ -26,9 +26,13 @@ public class Main {
 
     private void run(List<String> messages) throws ActorSystemCreationError {
         String systemName = getClass().getPackage().getName();
-        ActorSystem actorSystem = ActorSystem.create("dev-" + this.getClass().getSimpleName(), ConfigFactory.load().getConfig("kalin"));
+        ActorSystem actorSystem =
+                ActorSystem.create(
+                        "dev-" + this.getClass().getSimpleName(),
+                        ConfigFactory.load().getConfig("kalin"));
         try {
-            actorSystem.actorOf(SupervisorActor.props(messages), SupervisorActor.class.getSimpleName());
+            actorSystem.actorOf(
+                    SupervisorActor.props(messages), SupervisorActor.class.getSimpleName());
             ObjectMapper objectMapper = new ObjectMapper();
             Config config = actorSystem.dispatchers().defaultDispatcherConfig();
             System.out.println(Runtime.getRuntime().availableProcessors());
@@ -37,8 +41,8 @@ public class Main {
             System.out.println(config.getString("fork-join-executor.parallelism-factor"));
             System.out.println(config.getString("throughput"));
         } catch (Exception e) {
-            throw new ActorSystemCreationError(String.format("Failed to create actor system, %s.", systemName), e);
+            throw new ActorSystemCreationError(
+                    String.format("Failed to create actor system, %s.", systemName), e);
         }
     }
 }
-

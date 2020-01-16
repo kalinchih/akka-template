@@ -17,20 +17,32 @@ public class SupervisorActor extends AbstractActor {
     private int totalMessageCount = 0;
     private int totalTaskCount = 0;
     private int finishedTaskCount = 0;
-    private SupervisorStrategy strategy = new OneForOneStrategy(-1, Duration.Inf(), new Function<Throwable, Directive>() {
+    private SupervisorStrategy strategy =
+            new OneForOneStrategy(
+                    -1,
+                    Duration.Inf(),
+                    new Function<Throwable, Directive>() {
 
-        public Directive apply(Throwable exception) {
-            return handleActorError(exception);
-        }
-    });
+                        public Directive apply(Throwable exception) {
+                            return handleActorError(exception);
+                        }
+                    });
 
     public SupervisorActor(List<String> messages) {
         totalMessageCount = messages.size();
         totalTaskCount = totalMessageCount * 2;
-        dataWriterActor = getContext().actorOf(DataWriterActor.props(), DataWriterActor.class.getSimpleName());
+        dataWriterActor =
+                getContext()
+                        .actorOf(DataWriterActor.props(), DataWriterActor.class.getSimpleName());
         eventProducerActor =
-                getContext().actorOf(EventProducerActor.props().withRouter(new RoundRobinPool(2)), EventProducerActor.class.getSimpleName());
-        System.out.println(String.format("******************************* start loop (%s messages -> %s tasks)", totalMessageCount, totalTaskCount));
+                getContext()
+                        .actorOf(
+                                EventProducerActor.props().withRouter(new RoundRobinPool(2)),
+                                EventProducerActor.class.getSimpleName());
+        System.out.println(
+                String.format(
+                        "******************************* start loop (%s messages -> %s tasks)",
+                        totalMessageCount, totalTaskCount));
         for (String message : messages) {
             dataWriterActor.tell(ActorState.START, getSelf());
             eventProducerActor.tell(ActorState.START, getSelf());
@@ -44,19 +56,28 @@ public class SupervisorActor extends AbstractActor {
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder().matchEquals(ActorState.END, handle -> {
-            finishedTaskCount++;
-            System.out.println(String.format("[%s/%s] %s: %s finish task .", finishedTaskCount, totalTaskCount, getSender().path().toString(),
-                    getSender().hashCode()));
-            if (finishedTaskCount == totalTaskCount) {
-                getContext().getSystem().terminate();
-            }
-        }).build();
+        return receiveBuilder()
+                .matchEquals(
+                        ActorState.END,
+                        handle -> {
+                            finishedTaskCount++;
+                            System.out.println(
+                                    String.format(
+                                            "[%s/%s] %s: %s finish task .",
+                                            finishedTaskCount,
+                                            totalTaskCount,
+                                            getSender().path().toString(),
+                                            getSender().hashCode()));
+                            if (finishedTaskCount == totalTaskCount) {
+                                getContext().getSystem().terminate();
+                            }
+                        })
+                .build();
     }
 
     @Override
     public void postStop() {
-        //getContext().getSystem().terminate();
+        // getContext().getSystem().terminate();
     }
 
     @Override
@@ -72,9 +93,18 @@ public class SupervisorActor extends AbstractActor {
             if (cause instanceof ResumeActorError) {
                 return SupervisorStrategy.resume();
             } else if (cause instanceof RestartActorError) {
-                FiniteDuration delay = Duration.create(((RestartActorError) cause).getDelayMsToRestart(), TimeUnit.MILLISECONDS);
-                getContext().system().scheduler()
-                        .scheduleOnce(delay, ((RestartActorError) cause).getActorRef(), ActorState.START, getContext().system().dispatcher(),
+                FiniteDuration delay =
+                        Duration.create(
+                                ((RestartActorError) cause).getDelayMsToRestart(),
+                                TimeUnit.MILLISECONDS);
+                getContext()
+                        .system()
+                        .scheduler()
+                        .scheduleOnce(
+                                delay,
+                                ((RestartActorError) cause).getActorRef(),
+                                ActorState.START,
+                                getContext().system().dispatcher(),
                                 getSelf());
                 return SupervisorStrategy.restart();
             } else {

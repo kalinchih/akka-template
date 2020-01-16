@@ -9,10 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 public class EventProducerActor extends AbstractActor {
 
-    final private FiniteDuration DURATION_ZERO = Duration.create(0, TimeUnit.MILLISECONDS);
+    private final FiniteDuration DURATION_ZERO = Duration.create(0, TimeUnit.MILLISECONDS);
 
-    public EventProducerActor() {
-    }
+    public EventProducerActor() {}
 
     public static Props props() {
         return Props.create(EventProducerActor.class, () -> new EventProducerActor());
@@ -20,9 +19,13 @@ public class EventProducerActor extends AbstractActor {
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder().matchEquals(ActorState.START, handle -> {
-            process();
-        }).build();
+        return receiveBuilder()
+                .matchEquals(
+                        ActorState.START,
+                        handle -> {
+                            process();
+                        })
+                .build();
     }
 
     private void process() throws StopActorError {
@@ -35,6 +38,5 @@ public class EventProducerActor extends AbstractActor {
     }
 
     @Override
-    public void postStop() {
-    }
+    public void postStop() {}
 }
